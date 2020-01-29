@@ -14,13 +14,13 @@ server.use((req, res, next) => {
 
 function checkProject (req, res, next) {
   const {id} = req.params
-  projects.forEach(p => {
-    if(p.id === id) {
-      return next()
-    }
+  const project = projects.find(p => p.id == id);
 
-    res.status(400).json({error: 'Project does not exists'})
-  })
+  if (!project) {
+    return res.status(400).json({ error: 'Project not found' });
+  }
+
+  return next();
 
 }
 
@@ -41,13 +41,10 @@ server.put('/projects/:id', checkProject, (req, res) => {
   const {title} = req.body
   const { id } = req.params
   
-  projects.forEach(p => {
-    if(p.id === id) {
-      p.title = title
-    }
-  })
+  const project = projects.find(p => p.id == id);
+  project.title = title;
+  return res.json(project);
   
-  res.json(projects)
 
 })
 
@@ -55,23 +52,21 @@ server.post('/projects/:id/tasks', checkProject, (req, res) => {
   const {title} = req.body
   const { id } = req.params
 
-  projects.forEach(p => {
-    if(p.id === id) {
-      p.tasks.push(title)
-      return res.json(p)
-    }
-  })
+  const project = projects.find(p => p.id == id);
+  project.tasks.push(title);
+  return res.json(project);
+  
 })
 
 
 server.delete('/projects/:id', checkProject, (req, res) => {
   const { id } = req.params
 
-  const newProjectsArray = projects.filter((elem) => {
-    return elem.id !== id
-  })
-  projects = newProjectsArray
-  return res.json(projects)
+  const projectId = projects.findIndex(p => p.id == id);
+
+  projects.splice(projectId, 1);
+
+  return res.send();
 
 })
 
